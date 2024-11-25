@@ -32,8 +32,8 @@ public class JWTSecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/user/login", "/api/user/signup").permitAll()
-                .requestMatchers("/api/user/admin/get-users").hasRole("ADMIN")
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                 .anyRequest().authenticated())    
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

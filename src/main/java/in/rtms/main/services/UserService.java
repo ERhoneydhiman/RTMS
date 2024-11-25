@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import in.rtms.main.dao.UserDao;
 import in.rtms.main.dto.UserRequestDTO;
 import in.rtms.main.dto.UserResponceDTO;
+import in.rtms.main.entities.RoleEntity;
 import in.rtms.main.entities.UserEntity;
 import in.rtms.main.exceptionHandlers.BadCredentialsException;
 import in.rtms.main.exceptionHandlers.UserNameAllreadyExistException;
@@ -31,15 +32,29 @@ public class UserService {
 
 //  <--------------------------------------------------------------------------------------------------->
 
-	public UserResponceDTO saveUser(UserRequestDTO userRequestDTO) throws UserNameAllreadyExistException {
+	public UserResponceDTO getUser(String username) {
+		Optional<UserEntity> userOptional = userDao.userByUsername(username);
+		UserEntity userEntity = userOptional.orElseThrow(() -> new UsernameNotFoundException("user not found..."));
 
-		UserEntity userEntity = userTranslater.userDtoToEntity(userRequestDTO);
+		return userTranslater.userEntityToDto(userEntity);
+	}
 
-		if (checkUserExist(userEntity.getUsername())) {
+//  <--------------------------------------------------------------------------------------------------->
+
+	public UserResponceDTO saveUser(UserRequestDTO userRequestDTO, RoleEntity roleEntity)
+			throws UserNameAllreadyExistException {
+
+		UserEntity user = UserEntity.builder().firstName(userRequestDTO.getFirstName())
+				.lastName(userRequestDTO.getLastName()).username(userRequestDTO.getUsername())
+				.phoneNumber(userRequestDTO.getPhoneNumber()).email(userRequestDTO.getEmail())
+				.password(userRequestDTO.getPassword()).role(roleEntity).build();
+
+		if (checkUserExist(user.getUsername())) {
 			throw new UserNameAllreadyExistException("user with same username allready exist...");
 		}
-		UserEntity savedUserEntity = userDao.saveUserEntity(userEntity);
-		UserResponceDTO userResponceDTO = userTranslater.userEntityToDto(savedUserEntity);
+
+		UserEntity savedUser = userDao.saveUserEntity(user);
+		UserResponceDTO userResponceDTO = userTranslater.userEntityToDto(savedUser);
 
 		return userResponceDTO;
 
@@ -48,7 +63,7 @@ public class UserService {
 //  <--------------------------------------------------------------------------------------------------->
 
 	public UserResponceDTO loginUser(String username, String password) throws UsernameNotFoundException {
-		Optional<UserEntity> userOptional = userDao.loginCreater(username);
+		Optional<UserEntity> userOptional = userDao.userByUsername(username);
 
 		UserEntity userEntity = userOptional.orElseThrow(() -> new UsernameNotFoundException("user not found..."));
 
@@ -61,16 +76,44 @@ public class UserService {
 
 	}
 
-	
 //  <--------------------------------------------------------------------------------------------------->
-	
-	public List<UserResponceDTO> getAllUsers(){
-		
+
+	public List<UserResponceDTO> getAllUsers() {
+
 		List<UserEntity> userEntities = userDao.getAllUsers();
 		return userTranslater.userListEntityToDto(userEntities);
 	}
-	
+
 //  <--------------------------------------------------------------------------------------------------->
-	
-	
+
+	public Integer removeUser(String username) throws UsernameNotFoundException {
+		Integer deletedUser = userDao.deleteUser(username);
+
+		if (deletedUser == 0) {
+		    throw new UsernameNotFoundException("User with username " + username + " not found.");
+		}
+
+		return deletedUser;
+	}
+
+//  <--------------------------------------------------------------------------------------------------->
+
+	public UserResponceDTO updateUser(String username, UserRequestDTO userRequestDTO) throws Exception {
+
+		UserEntity user = userDao.userByUsername(username)
+				.orElseThrow(() -> new UsernameNotFoundException("username not found..."));
+
+		user.setFirstName(userRequestDTO.getFirstName());
+		user.setLastName(userRequestDTO.getLastName());
+		user.setPhoneNumber(userRequestDTO.getPhoneNumber());
+		user.setEmail(userRequestDTO.getEmail());
+
+		UserEntity updatedUser = userDao.updateUser(user);
+
+		return userTranslater.userEntityToDto(updatedUser);
+
+	}
+
+//  <--------------------------------------------------------------------------------------------------->
+
 }
