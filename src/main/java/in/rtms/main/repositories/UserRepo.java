@@ -15,5 +15,8 @@ public interface UserRepo extends JpaRepository<UserEntity, Long>{
 	
 //	method to find user by username.
 	public Optional<UserEntity> getByusername(String username);
+	
+//	method to delete user by username in user
+	public Integer deleteByUsername(String username);
 
 }

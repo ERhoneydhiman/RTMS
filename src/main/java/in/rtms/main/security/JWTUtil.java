@@ -32,9 +32,13 @@ public class JWTUtil {
 
 	@SuppressWarnings("deprecation")
 	public String createToken(Map<String, Object> claims, String userName) {
-		return Jwts.builder().setClaims(claims).setSubject(userName).setIssuedAt(new Date())
+		return Jwts.builder()
+				.setClaims(claims)
+				.setSubject(userName)
+				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-				.signWith(getSignKey()).compact();
+				.signWith(getSignKey())
+				.compact();
 	}
 
 	private Key getSignKey() {
